@@ -52,7 +52,7 @@ const Contact = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-black text-white flex flex-col overflow-y-auto">
+      <div className="h-full bg-black text-white flex flex-col overflow-y-auto">
         <div className="container mx-auto px-4 py-16 flex-grow">
           <h1 className="text-4xl font-bold mb-8">Contact Me</h1>
           <div className="max-w-2xl mx-auto">

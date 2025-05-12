@@ -25,7 +25,7 @@ const PageTransition = ({ children }) => {
   }, []);
 
   return (
-    <div ref={pageRef} className="min-h-screen w-full overflow-y-auto">
+    <div ref={pageRef} className="w-full h-full">
       {children}
     </div>
   );

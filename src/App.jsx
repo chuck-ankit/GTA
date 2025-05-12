@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { RiHeartFill } from "@remixicon/react";
@@ -24,6 +24,7 @@ const App = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const scrollRef = useRef(null);
   const dropdownRef = useRef(null);
+  const location = useLocation();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -38,7 +39,12 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (showContent) {
+    if (showContent && scrollRef.current) {
+      // Destroy existing scroll instance if it exists
+      if (scrollRef.current.scroll && typeof scrollRef.current.scroll.destroy === 'function') {
+        scrollRef.current.scroll.destroy();
+      }
+
       const scroll = new LocomotiveScroll({
         el: scrollRef.current,
         smooth: true,
@@ -52,14 +58,32 @@ const App = () => {
         tablet: {
           smooth: true,
           multiplier: 1
-        }
+        },
+        scrollFromAnywhere: false,
+        reloadOnContextChange: true,
+        getDirection: true,
+        getSpeed: true,
+        scrollbarContainer: false,
+        scrollbarClass: 'scrollbar',
+        scrollingClass: 'is-scrolling',
+        initPosition: { x: 0, y: 0 }
+      });
+
+      // Store the scroll instance
+      scrollRef.current.scroll = scroll;
+
+      // Update scroll on content change
+      scroll.on('load', () => {
+        scroll.update();
       });
 
       return () => {
-        scroll.destroy();
+        if (scroll && typeof scroll.destroy === 'function') {
+          scroll.destroy();
+        }
       };
     }
-  }, [showContent]);
+  }, [showContent, location.pathname]);
 
   useGSAP(() => {
     const tl = gsap.timeline();
@@ -78,7 +102,10 @@ const App = () => {
       opacity: 0,
       onUpdate: function () {
         if (this.progress() >= 0.9) {
-          document.querySelector(".svg").remove();
+          const svg = document.querySelector(".svg");
+          if (svg) {
+            svg.remove();
+          }
           setShowContent(true);
           this.kill();
         }
@@ -87,7 +114,10 @@ const App = () => {
   });
 
   useGSAP(() => {
+    if (!showContent) return;
+
     const main = document.querySelector(".landing .main");
+    if (!main) return;
 
     const handleMouseMove = (e) => {
       const xMove = (e.clientX / window.innerWidth - 0.5) * 40;
@@ -100,65 +130,79 @@ const App = () => {
       });
 
       gsap.to(".main .sky", {
-        x: `${xMove * 0.2}%`,  // Add percentage and proper multiplier
+        x: xMove,
         transformOrigin: "center center",
         ease: "power2.out",
+        scale: 1.1,
         duration: 0.5
       });
 
       gsap.to(".main .bg", {
-        x: `${xMove * 0.3}%`,  // Add percentage and proper multiplier
+        x: xMove * 1.7,
         transformOrigin: "center center",
         ease: "power2.out",
+        scale: 1.1,
         duration: 0.5
       });
     };
 
-    main?.addEventListener("mousemove", handleMouseMove);
+    main.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      main?.removeEventListener("mousemove", handleMouseMove);
+      main.removeEventListener("mousemove", handleMouseMove);
     };
   }, [showContent]);
 
   useGSAP(() => {
     if (!showContent) return;
     
+    // Wait for elements to be in the DOM
+    const elements = {
+      main: document.querySelector(".main"),
+      sky: document.querySelector(".sky"),
+      bg: document.querySelector(".bg"),
+      character: document.querySelector(".character"),
+      text: document.querySelector(".text")
+    };
+
+    // Only proceed if all elements exist
+    if (!Object.values(elements).every(el => el)) return;
+
     // Reset initial state
-    gsap.set(".main", {
-      scale: 1.4,
+    gsap.set(elements.main, {
+      scale: 1.7,
       rotate: -10,
     });
-    gsap.set(".sky", {
+    gsap.set(elements.sky, {
       scale: 1.5,
       rotate: -20,
     });
-    gsap.set(".bg", {
-      scale: 1.3,
+    gsap.set(elements.bg, {
+      scale: 1.8,
+      rotate: -3,
+    });
+    gsap.set(elements.character, {
+      scale: 2.5,
       rotate: -20,
-    });
-    gsap.set(".character", {
-      y: 200,
-      opacity: 0,
-      scale: 0.8,
       x: "-50%",
-      bottom: 0
+      y: "0%"
     });
-    gsap.set(".text h1", {
-      y: 50,
-      opacity: 0,
-      rotate: -10
+    gsap.set(elements.text, {
+      scale: 1.4,
+      rotate: -10,
+      x: "-50%",
+      y: "0%"
     });
 
     // Create the animation
-    gsap.to(".main", {
+    gsap.to(elements.main, {
       scale: 1,
       rotate: 0,
-      duration: 1.5,
+      duration: 2,
+      delay: "-1",
       ease: "Expo.easeInOut",
-      delay: 0.1
     });
-    gsap.to(".sky", {
+    gsap.to(elements.sky, {
       scale: 1.1,
       rotate: 0,
       duration: 2,
@@ -166,7 +210,7 @@ const App = () => {
       ease: "Expo.easeInOut",
     });
 
-    gsap.to(".bg", {
+    gsap.to(elements.bg, {
       scale: 1.1,
       rotate: 0,
       duration: 2,
@@ -175,43 +219,51 @@ const App = () => {
     });
 
     // Character animation
-    gsap.to(".character", {
-      y: 0,
-      opacity: 1,
-      scale: 1,
-      duration: 1.5,
-      delay: 0.5,
-      ease: "power2.out"
+    gsap.to(elements.character, {
+      scale: 1.2,
+      rotate: 0,
+      x: "-50%",
+      y: "0%",
+      duration: 2,
+      delay: "-.8",
+      ease: "Expo.easeInOut",
     });
 
-    // Text animation with stagger
-    gsap.to(".text h1", {
-      y: 0,
-      opacity: 1,
-      rotate: -10,
-      duration: 1,
-      stagger: 0.2,
-      delay: 0.3,
-      ease: "power2.out"
+    // Text animation
+    gsap.to(elements.text, {
+      scale: 1,
+      rotate: 0,
+      x: "-50%",
+      y: "0%",
+      duration: 2,
+      delay: "-.8",
+      ease: "Expo.easeInOut",
     });
     
   }, [showContent]);
 
   return (
-    <Router>
+    <>
       <Intro showContent={showContent} setShowContent={setShowContent} />
       {showContent && (
-        <div ref={scrollRef} data-scroll-container className="main w-full">
+        <div 
+          ref={scrollRef} 
+          data-scroll-container 
+          className="main w-full overflow-x-hidden min-h-screen"
+          style={{ height: 'auto' }}
+        >
           <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/contact" element={<Contact />} />
-          </Routes>
+          <div className="relative">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/contact" element={<Contact />} />
+            </Routes>
+          </div>
         </div>
       )}
-    </Router>
+    </>
   );
 };
 
