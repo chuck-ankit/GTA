@@ -76,7 +76,7 @@ const Hero = () => {
         alt="bg" 
       />
       <div className='text absolute top-20 left-1/2 -translate-x-1/2 flex flex-col rotate-[-10deg] scale-[1.4] px-4 text-white items-center'>
-        <h1 className='text-5xl md:text-7xl lg:text-9xl -ml40'>grand</h1>
+        <h1 className='text-5xl md:text-7xl lg:text-9xl -ml-40'>grand</h1>
         <h1 className='text-5xl md:text-7xl lg:text-9xl ml-20'>theft</h1>
         <h1 className='text-5xl md:text-7xl lg:text-9xl -ml-40'>auto</h1>
       </div>
