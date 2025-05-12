@@ -3,18 +3,15 @@
 
 @font-face {
   font-family: "pricedown";
-  src: url("/assets/pricedown.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
+  src: url("./assets/pricedown.ttf");
 }
 
 @font-face {
-  font-family: "Helvetica Now Display";
-  src: url("/assets/HelveticaNowDisplay.ttf") format("truetype");
+  font-family: 'Helvetica Now Display';
+  src: url('/fonts/HelveticaNowDisplay.woff2') format('woff2'),
+       url('/fonts/HelveticaNowDisplay.woff') format('woff');
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
 }
 
 html,
